@@ -21,11 +21,17 @@ describe Oystercard do
   end
 
   it 'touches in' do
+    subject.top_up(Oystercard::MAXIMUM_BALANCE)
     subject.touch_in
     expect(subject.in_journey).to eq (true)
   end
 
+  it 'raises an error when touching in with insufficient balance' do
+    expect{ subject.touch_in }.to raise_error "Insufficent balance"
+  end
+
   it 'touches out' do
+    subject.top_up(Oystercard::MAXIMUM_BALANCE)
     subject.touch_in
     subject.touch_out
     expect(subject.in_journey).to eq (false)
