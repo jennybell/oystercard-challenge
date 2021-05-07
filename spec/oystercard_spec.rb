@@ -37,7 +37,12 @@ describe Oystercard do
     it 'saves entry_station on touch_in' do
       subject.top_up(Oystercard::MAXIMUM_BALANCE)
       subject.touch_in(entry_station)
-      expect(subject.entry_station).to eq(entry_station)
+      expect(subject.current_journey.entry_station).to eq(entry_station)
+    end
+    it 'deducts the penalty fare when not touched out' do
+      subject.top_up(Oystercard::MAXIMUM_BALANCE) 
+      subject.touch_in(entry_station)
+      expect { subject.touch_in(entry_station) }.to change{ subject.balance }.by(-Oystercard::PENALTY_FARE)
     end
   end
 
@@ -53,17 +58,21 @@ describe Oystercard do
       subject.touch_in(entry_station)
       expect { subject.touch_out(exit_station) }.to change{ subject.balance }.by(-Oystercard::MINIMUM_BALANCE)
     end
-    it 'sets entry_station to nil' do
+    it 'completes the journey' do
       subject.top_up(Oystercard::MAXIMUM_BALANCE)
       subject.touch_in(entry_station)
       subject.touch_out(exit_station)
-      expect(subject.entry_station).to eq(nil)
+      expect(subject.in_journey?).to be false
     end
     it 'saves exit_station on touch_out' do
       subject.top_up(Oystercard::MAXIMUM_BALANCE)
       subject.touch_in(entry_station)
       subject.touch_out(exit_station)
-      expect(subject.exit_station).to eq(exit_station)
+      expect(subject.current_journey.exit_station).to eq(exit_station)
+    end
+    it 'deducts the penalty fare when not touched in' do
+      subject.top_up(Oystercard::MAXIMUM_BALANCE)
+      expect { subject.touch_out(exit_station) }.to change{ subject.balance }.by(-Oystercard::PENALTY_FARE)
     end
   end
 
